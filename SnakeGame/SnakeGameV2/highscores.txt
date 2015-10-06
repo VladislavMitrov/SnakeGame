@@ -1,23 +1,9 @@
-80 - kireto
-40 - kireto
-100 - kireto
-20 - kireto
-200 - kireto
-60 - kireto
-0 - kireto
-140 - kireto
-80 - kireto
-140 - kireto
-120 - koko
-20 - sss
-
-200 - asd
-
-200 - asd
-
-40 - asd
-
-240 - asd
-
-40 - asd
-
+koko 100
+kiko 40
+choko 200
+boko 180
+roko 80
+koko 20
+kireto 140
+kireto 160
+ddfs 0

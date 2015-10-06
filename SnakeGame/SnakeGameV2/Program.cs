@@ -25,17 +25,14 @@ namespace JustSnake
         const int GameHeight = 25;
 
         static int level = 1;
-        static string txtHighScore = String.Empty;
-        static string txtNickname = String.Empty;
         static double sleepTime = 100;
         static int userScore = 0;
-
-
-        static void Main(string[] args)
+        static List<Tuple<string, int>> players = new List<Tuple<string, int>>();
+        static string nickname = String.Empty;
+        public static void Main()
         {
+            ReadHighScore();
             StartMenu();
-
-            string nickname = Console.ReadLine();
             Console.Clear();
 
             PrintBorder();
@@ -90,6 +87,14 @@ namespace JustSnake
                 Console.Write("*");
             }
 
+            GameRunning(direction,right,left,up,down,obstacles,snakeElements,lastFoodTime,foodDissapearTime,randomNumbersGenerator,food,directions,nickname);
+            
+        }
+
+        static void GameRunning(int direction, byte right, byte left, byte up, byte down
+            , List<Position> obstacles, Queue<Position> snakeElements, int lastFoodTime, int foodDissapearTime
+            ,Random randomNumbersGenerator,Position food,Position[] directions,string nickname)
+        {
             while (true)
             {
                 direction = keyAvailable(direction, right, left, up, down);
@@ -189,22 +194,53 @@ namespace JustSnake
             }
         }
 
+        
+        static void PrintControlsInfo()
+        {
+            Console.Clear();
+            Print(0, 0, @"
+Controls:
+================
+[^] move up
+[v] move down
+[<] move left
+[>] move right
+================
+            
+",ConsoleColor.DarkBlue);
+            Print(8, 0, @"
+Controls in last level
+Drunk snake
+================
+[^] move up
+[v] move down
+[>] move left
+<] move right
+================
+            
+",ConsoleColor.DarkBlue);
+            Console.ReadKey(true);
+            Console.Clear();
+            StartMenu();
+        }
+
         static void PrintBorder()
         {
             for (int col = 0; col < GameWidth; col++)
             {
-                Print(0, col, '*');
-                Print(24, col, '*');
+                Print(0, col, '*',ConsoleColor.Green);
+                Print(24, col, '*', ConsoleColor.Green);
             }
             for (int row = 0; row < GameHeight; row++)
             {
-                Print(row, 0, '*');
-                Print(row, 69, '*');
+                Print(row, 0, '*', ConsoleColor.Green);
+                Print(row, 69, '*', ConsoleColor.Green);
             }
         }
 
-        static void Print(int row, int col, object data)
+        static void Print(int row, int col, object data,ConsoleColor color)
         {
+            Console.ForegroundColor = color;
             Console.SetCursorPosition(col, row);
             Console.Write(data);
         }
@@ -219,9 +255,10 @@ namespace JustSnake
                 Console.SetCursorPosition(GameWidth / 2 + 5, GameHeight / 2);
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Game over!");
-                UpdateScore(userScore, nickname);
                 Console.ReadLine();
+                UpdateScore(userScore, nickname);
                 Environment.Exit(0);
+                
             }
         }
 
@@ -254,26 +291,31 @@ namespace JustSnake
             // level
             Console.SetCursorPosition(GameWidth + 5, 3);
             Console.WriteLine("Level: {0}", level);
-            UpdateHighScore();
-            // TODO: best score
+
+            // best score
+            var playerSortedScore = players.OrderByDescending(a => a.Item2).Take(1).Select(player => player.Item2);
+            var playerSortedName = players.OrderByDescending(a => a.Item2).Take(1).Select(player => player.Item1);
+
+            int score = int.Parse(string.Join("",playerSortedScore));
+            string name = string.Join("",playerSortedName);
             Console.SetCursorPosition(GameWidth + 4, 7);
             Console.Write("Score: ");
-            Console.WriteLine(txtHighScore);
+            Console.WriteLine(score);
             Console.SetCursorPosition(GameWidth + 4, 8);
             Console.Write("By: ");
-            Console.WriteLine(txtNickname);
+            Console.WriteLine(name);
 
             // field of best score
             for (int col = GameWidth + 2; col < GameWidth + 17; col++)
             {
-                Print(5, col, '*');
-                Print(10, col, '*');
+                Print(5, col, '*', ConsoleColor.Green);
+                Print(10, col, '*', ConsoleColor.Green);
 
             }
             for (int row = 6; row < 10; row++)
             {
-                Print(row, GameWidth + 2, '*');
-                Print(row, GameWidth + 16, '*');
+                Print(row, GameWidth + 2, '*', ConsoleColor.Green);
+                Print(row, GameWidth + 16, '*', ConsoleColor.Green);
             }
         }
 
@@ -304,64 +346,64 @@ namespace JustSnake
 
         }
 
-        static void UpdateHighScore()
+        static void ShowHighScores()
         {
-            string path = "../../highscores.txt"; 
-            if (File.Exists(path))
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            if (players.Count == 0)
+            {
+                ReadHighScore();
+            }
+            var result = players.OrderByDescending(player => player.Item2)
+                .Take(5)
+                .Select(player => player.Item1 + " scored: " + player.Item2);
+
+            Console.WriteLine("Top 5 scores:");
+            Console.WriteLine(string.Join("\n", result));
+            Console.WriteLine("Press any key to continue...");
+            string key = Console.ReadLine();
+            if (key != null)
+            {
+                Console.Clear();
+                StartMenu();
+            }
+
+        }
+
+        static void ReadHighScore()
+        {
+            string path = "../../highscores.txt";
+            using (StreamReader reader = new StreamReader(path))
             {
                 string line;
-                StreamReader file = null;
-                file = new StreamReader(path);
-                string[] highScores = new string[100];
-                int i = 0;
-                while ((line = file.ReadLine()) != null)
+                while (!string.IsNullOrEmpty(line = reader.ReadLine()))
                 {
-                    highScores[i] = line;
-                    i++;
-                }
-                file.Close();
-                string pattern = @"\d+";
-                int best = 0;
-                int score = 0;
-                string name = String.Empty;
-                for (int k = 0; k < 10; k++)
-                {
-                    Match matchScore = Regex.Match(highScores[k], pattern);
-                    Match matchName = Regex.Match(highScores[k], "[a-zA-z]+");
-                    score = int.Parse(matchScore.ToString());
-                    if (score > best)
-                    {
-                        best = score;
-                        name = matchName.ToString();
-                    }
+                    string[] data = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    string name = data[0];
+                    int score = int.Parse(data[1]);
 
+                    players.Add(new Tuple<string, int>(name, score));
                 }
-                txtHighScore = best.ToString();
-                txtNickname = name;
-
             }
         }
 
         static void UpdateScore(int Score, string nickname)
         {
+            Console.CursorVisible = true;
             string path = "../../highscores.txt"; 
-            string FinalScore = Score + " - " + nickname + Environment.NewLine;
-            if (File.Exists(path))
+            Console.Clear();
+            Console.WriteLine("\nWould you like to save your score?Yes/No");
+            Console.Write("Please enter: ");
+            string option = Console.ReadLine().ToLower();
+            if (option == "Yes".ToLower())
             {
-                StreamWriter writerScore;
-                writerScore = File.AppendText(path);
-                writerScore.WriteLine(FinalScore);
-                writerScore.Close();
+                using (StreamWriter w = File.AppendText(path))
+                {
+                    w.WriteLine(nickname + " " + userScore);
+                }
             }
-            else
-            {
-                StreamWriter writerScore;
-                writerScore = File.CreateText(path);
-                writerScore.Close();
-                writerScore = File.AppendText(path);
-                writerScore.WriteLine(FinalScore);
-                writerScore.Close();
-            }
+            Console.Clear();
+            
         }
 
         static Position GameField(Position snakeNewHead)
@@ -436,20 +478,46 @@ namespace JustSnake
 
         static void StartMenu()
         {
-            Console.Title = "Snake";
-            Console.SetCursorPosition(36, 8);
-            Console.WriteLine("Menu:");
-            Console.WriteLine(@"
-                            ====================
-                            [^] move up
-                            [v] move down
-                            [<] move left
-                            [>] move right
             
-");
+            Console.Title = "Snake";
+            Print(0, 0,@"                                  
+                          ___   _ __     __ _  | | __   ___ 
+                         / __| | '_ \   / _` | | |/ /  / _ \
+                         \__ \ | | | | | (_| | |   <  |  __/
+                         |___/ |_| |_|  \__,_| |_|\_\  \___|
+                                    ", ConsoleColor.Blue);
+           
+            Print(8,40,"Menu:", ConsoleColor.White);
+            Print(10,30,"[1].Play game", ConsoleColor.White);
+            Print(11,30,"[2].View best score", ConsoleColor.White);
+            Print(12,30,"[3].Controls", ConsoleColor.White);
+            Print(13,30,"[4].Exit", ConsoleColor.White);
+            Console.SetCursorPosition(30, 14);
+            Console.Write("Please enter options: ");
+            int option;
+            if (int.TryParse(Console.ReadLine(), out option))
+            {
+                Console.WriteLine();
+                switch (option)
+                {
+                    case 1:
+                        Console.Clear();
+                        Console.Write("Plaese enter nickname: ");
+                        nickname = Console.ReadLine();
+                       PrintBorder();
+                        break;
+                    case 2:
+                        ShowHighScores();
+                        break;
+                    case 3:
+                        PrintControlsInfo();
+                        break;
+                    case 4:
+                        Environment.Exit(0);
+                        break;
+                }
+            }
 
-            Console.SetCursorPosition(28, 16);
-            Console.Write("Please enter nickname: ");
         }
 
         static void PlayerLevel(int userPoints, Random randomNumbersGenerator
