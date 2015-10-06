@@ -401,7 +401,7 @@ namespace JustSnake
                 AddObstacle(randomNumbersGenerator, snakeElements, obstacles, food, rolls);
             }
 
-            else if ((userPoints ==20) || (userPoints == 280) || (userPoints ==320) || (userPoints == 360) || (userPoints == 400))
+            else if ((userPoints ==240) || (userPoints == 280) || (userPoints ==320) || (userPoints == 360) || (userPoints == 400))
             {
                 level++;
                 rolls = 3;
