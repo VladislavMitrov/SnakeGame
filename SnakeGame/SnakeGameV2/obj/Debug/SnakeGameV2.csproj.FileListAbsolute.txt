@@ -4,3 +4,9 @@ c:\users\vladi\documents\visual studio 2013\Projects\SnakeGame\SnakeGameV2\bin\D
 c:\users\vladi\documents\visual studio 2013\Projects\SnakeGame\SnakeGameV2\bin\Debug\SnakeGameV2.pdb
 c:\users\vladi\documents\visual studio 2013\Projects\SnakeGame\SnakeGameV2\obj\Debug\SnakeGameV2.exe
 c:\users\vladi\documents\visual studio 2013\Projects\SnakeGame\SnakeGameV2\obj\Debug\SnakeGameV2.pdb
+C:\Users\Vladi\Documents\GitHub\SnakeGame\SnakeGame\SnakeGameV2\bin\Debug\SnakeGameV2.exe.config
+C:\Users\Vladi\Documents\GitHub\SnakeGame\SnakeGame\SnakeGameV2\obj\Debug\SnakeGameV2.exe
+C:\Users\Vladi\Documents\GitHub\SnakeGame\SnakeGame\SnakeGameV2\obj\Debug\SnakeGameV2.pdb
+C:\Users\Vladi\Documents\GitHub\SnakeGame\SnakeGame\SnakeGameV2\bin\Debug\SnakeGameV2.exe
+C:\Users\Vladi\Documents\GitHub\SnakeGame\SnakeGame\SnakeGameV2\bin\Debug\SnakeGameV2.pdb
+C:\Users\Vladi\Documents\GitHub\SnakeGame\SnakeGame\SnakeGameV2\obj\Debug\SnakeGameV2.csprojResolveAssemblyReference.cache

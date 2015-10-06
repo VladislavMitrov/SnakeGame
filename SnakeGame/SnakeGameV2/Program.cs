@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace JustSnake
 {
@@ -20,29 +23,18 @@ namespace JustSnake
     {
         const int GameWidth = 70;
         const int GameHeight = 25;
-        static int level = 1;
 
-        static void PrintBorder()
-        {
-            for (int col = 0; col < GameWidth; col++)
-            {
-                Print(0, col, '*');
-                Print(24, col, '*');
-            }
-            for (int row = 0; row < GameHeight; row++)
-            {
-                Print(row, 0, '*');
-                Print(row, 69, '*');
-            }
-        }
-        static void Print(int row, int col, object data)
-        {
-            Console.SetCursorPosition(col, row);
-            Console.Write(data);
-        }
+        static int level = 1;
+        static string txtHighScore = String.Empty;
+        static string txtNickname = String.Empty;
+        static double sleepTime = 100;
+        static int userScore = 0;
+
+
         static void Main(string[] args)
         {
             StartMenu();
+
             string nickname = Console.ReadLine();
             Console.Clear();
 
@@ -54,9 +46,13 @@ namespace JustSnake
             byte up = 3;
             int lastFoodTime = 0;
             int foodDissapearTime = 8000;
-            int negativePoints = 0;
-            int userScore = 0;
-            int bestScore = 2000;
+
+
+            Console.WindowHeight = GameHeight + 1;
+            Console.BufferHeight = GameHeight + 1;
+            Console.WindowWidth = GameWidth + 20;
+            Console.BufferWidth = GameWidth + 20;
+
             Position[] directions = new Position[]
             {
                 new Position(0, 1), // right
@@ -64,14 +60,10 @@ namespace JustSnake
                 new Position(1, 0), // down
                 new Position(-1, 0), // up
             };
-            double sleepTime = 100;
+
             int direction = right;
             Random randomNumbersGenerator = new Random();
 
-            Console.WindowHeight = GameHeight + 1;
-            Console.BufferHeight = GameHeight + 1;
-            Console.WindowWidth = GameWidth + 20;
-            Console.BufferWidth = GameWidth + 20;
             lastFoodTime = Environment.TickCount;
 
             List<Position> obstacles =
@@ -86,19 +78,8 @@ namespace JustSnake
             }
 
             Position food;
-            do
-            {
-                food = new Position(
-                    randomNumbersGenerator.Next(1,
-                        GameHeight - 3),
-                    randomNumbersGenerator.Next(1,
-                       GameWidth - 3));
-            }
-            while (snakeElements.Contains(food) ||
-                   obstacles.Contains(food));
-            Console.SetCursorPosition(food.col, food.row);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("@");
+            food = PrintFood(snakeElements, obstacles, randomNumbersGenerator);
+
 
             foreach (Position position in snakeElements)
             {
@@ -111,9 +92,7 @@ namespace JustSnake
 
             while (true)
             {
-                
-                negativePoints++;
-                direction = keyAvailable(userScore, direction, right, left, up, down);
+                direction = keyAvailable(direction, right, left, up, down);
 
                 Position snakeHead = snakeElements.Last();
                 Position nextDirection = directions[direction];
@@ -124,20 +103,9 @@ namespace JustSnake
 
                 snakeNewHead = GameField(snakeNewHead);
 
-                if (snakeElements.Contains(snakeNewHead)
-                    || obstacles.Contains(snakeNewHead))
-                {
-                    Console.Clear();
-                    Console.CursorVisible = false;
-                    Console.SetCursorPosition(GameWidth / 2 + 5, GameHeight / 2);
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Game over!");
+                EndGame(snakeElements, obstacles, nickname, snakeNewHead);
 
-                    Console.ReadLine();
-                    return;
-                }
-
-                PrintScoreAndLevel(userScore, bestScore, level);
+                PrintScoreAndLevel(userScore, level);
 
                 Console.SetCursorPosition(
                     snakeHead.col,
@@ -170,13 +138,15 @@ namespace JustSnake
                                 GameWidth - 3));
                     }
                     while (snakeElements.Contains(food) ||
-                        obstacles.Contains(food));
+                                obstacles.Contains(food));
+
                     lastFoodTime = Environment.TickCount;
                     Console.SetCursorPosition(
                         food.col,
                         food.row);
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.Write("@");
+
                     sleepTime--;
 
                     //update score
@@ -191,10 +161,11 @@ namespace JustSnake
                     Console.Write(" ");
                 }
 
+
                 if (Environment.TickCount - lastFoodTime >=
                     foodDissapearTime)
                 {
-                    //negativePoints = negativePoints + 50;
+
                     Console.SetCursorPosition(food.col, food.row);
                     Console.Write(" ");
                     do
@@ -209,18 +180,72 @@ namespace JustSnake
                         obstacles.Contains(food));
                     lastFoodTime = Environment.TickCount;
                 }
-
                 Console.SetCursorPosition(food.col, food.row);
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.Write("@");
-
-                sleepTime -= 0.01;
+                sleepTime -= 0.05;
 
                 Thread.Sleep((int)sleepTime);
             }
         }
 
-        static void PrintScoreAndLevel(int userScore, int bestScore, int level)
+        static void PrintBorder()
+        {
+            for (int col = 0; col < GameWidth; col++)
+            {
+                Print(0, col, '*');
+                Print(24, col, '*');
+            }
+            for (int row = 0; row < GameHeight; row++)
+            {
+                Print(row, 0, '*');
+                Print(row, 69, '*');
+            }
+        }
+
+        static void Print(int row, int col, object data)
+        {
+            Console.SetCursorPosition(col, row);
+            Console.Write(data);
+        }
+
+        static void EndGame(Queue<Position> snakeElements, List<Position> obstacles, string nickname, Position snakeNewHead)
+        {
+            if (snakeElements.Contains(snakeNewHead)
+                    || obstacles.Contains(snakeNewHead))
+            {
+                Console.Clear();
+                Console.CursorVisible = false;
+                Console.SetCursorPosition(GameWidth / 2 + 5, GameHeight / 2);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Game over!");
+                UpdateScore(userScore, nickname);
+                Console.ReadLine();
+                Environment.Exit(0);
+            }
+        }
+
+        static Position PrintFood(Queue<Position> snakeElements, List<Position> obstacles, Random randomNumbersGenerator)
+        {
+            Position food;
+            do
+            {
+                food = new Position(
+                    randomNumbersGenerator.Next(1,
+                        GameHeight - 3),
+                    randomNumbersGenerator.Next(1,
+                       GameWidth - 3));
+            }
+            while (snakeElements.Contains(food) ||
+                   obstacles.Contains(food));
+            Console.SetCursorPosition(food.col, food.row);
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("@");
+
+            return food;
+        }
+
+        static void PrintScoreAndLevel(int userScore, int level)
         {
             // score player
             Console.SetCursorPosition(GameWidth + 5, 1);
@@ -229,12 +254,14 @@ namespace JustSnake
             // level
             Console.SetCursorPosition(GameWidth + 5, 3);
             Console.WriteLine("Level: {0}", level);
-
+            UpdateHighScore();
             // TODO: best score
             Console.SetCursorPosition(GameWidth + 4, 7);
-            Console.WriteLine("Best score: ");
-            Console.SetCursorPosition(GameWidth + 7, 8);
-            Console.WriteLine(bestScore);
+            Console.Write("Score: ");
+            Console.WriteLine(txtHighScore);
+            Console.SetCursorPosition(GameWidth + 4, 8);
+            Console.Write("By: ");
+            Console.WriteLine(txtNickname);
 
             // field of best score
             for (int col = GameWidth + 2; col < GameWidth + 17; col++)
@@ -249,6 +276,7 @@ namespace JustSnake
                 Print(row, GameWidth + 16, '*');
             }
         }
+
         static void AddObstacle(Random randomNumbersGenerator, Queue<Position> snakeElements, List<Position> obstacles, Position food, int rolls)
         {
             for (int i = 0; i < rolls; i++)
@@ -275,6 +303,67 @@ namespace JustSnake
             }
 
         }
+
+        static void UpdateHighScore()
+        {
+            string path = "../../highscores.txt"; 
+            if (File.Exists(path))
+            {
+                string line;
+                StreamReader file = null;
+                file = new StreamReader(path);
+                string[] highScores = new string[100];
+                int i = 0;
+                while ((line = file.ReadLine()) != null)
+                {
+                    highScores[i] = line;
+                    i++;
+                }
+                file.Close();
+                string pattern = @"\d+";
+                int best = 0;
+                int score = 0;
+                string name = String.Empty;
+                for (int k = 0; k < 10; k++)
+                {
+                    Match matchScore = Regex.Match(highScores[k], pattern);
+                    Match matchName = Regex.Match(highScores[k], "[a-zA-z]+");
+                    score = int.Parse(matchScore.ToString());
+                    if (score > best)
+                    {
+                        best = score;
+                        name = matchName.ToString();
+                    }
+
+                }
+                txtHighScore = best.ToString();
+                txtNickname = name;
+
+            }
+        }
+
+        static void UpdateScore(int Score, string nickname)
+        {
+            string path = "../../highscores.txt"; 
+            string FinalScore = Score + " - " + nickname + Environment.NewLine;
+            if (File.Exists(path))
+            {
+                StreamWriter writerScore;
+                writerScore = File.AppendText(path);
+                writerScore.WriteLine(FinalScore);
+                writerScore.Close();
+            }
+            else
+            {
+                StreamWriter writerScore;
+                writerScore = File.CreateText(path);
+                writerScore.Close();
+                writerScore = File.AppendText(path);
+                writerScore.WriteLine(FinalScore);
+                writerScore.Close();
+            }
+        }
+
         static Position GameField(Position snakeNewHead)
         {
             if (snakeNewHead.col <= 0)
@@ -296,7 +385,7 @@ namespace JustSnake
             return snakeNewHead;
         }
 
-        static int keyAvailable(int userScore, int direction, byte right, byte left, byte up, byte down)
+        static int keyAvailable(int direction, byte right, byte left, byte up, byte down)
         {
             if (Console.KeyAvailable)
             {
@@ -342,11 +431,12 @@ namespace JustSnake
                 }
             }
 
-                return direction;
-            }
-        
+            return direction;
+        }
+
         static void StartMenu()
         {
+            Console.Title = "Snake";
             Console.SetCursorPosition(36, 8);
             Console.WriteLine("Menu:");
             Console.WriteLine(@"
@@ -401,13 +491,14 @@ namespace JustSnake
                 AddObstacle(randomNumbersGenerator, snakeElements, obstacles, food, rolls);
             }
 
-            else if ((userPoints ==240) || (userPoints == 280) || (userPoints ==320) || (userPoints == 360) || (userPoints == 400))
+            else if ((userPoints == 240) || (userPoints == 280) || (userPoints == 320) || (userPoints == 360) || (userPoints == 400))
             {
                 level++;
                 rolls = 3;
                 AddObstacle(randomNumbersGenerator, snakeElements, obstacles, food, rolls);
-          
+
             }
+
         }
     }
 }
