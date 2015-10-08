@@ -207,7 +207,7 @@ Controls:
 [>] move right
 ================
             
-",ConsoleColor.DarkBlue);
+",ConsoleColor.Green);
             Print(8, 0, @"
 Controls in last level
 Drunk snake
@@ -218,7 +218,7 @@ Drunk snake
 <] move right
 ================
             
-",ConsoleColor.DarkBlue);
+",ConsoleColor.Green);
             Console.ReadKey(true);
             Console.Clear();
             StartMenu();
@@ -485,7 +485,7 @@ Drunk snake
                          / __| | '_ \   / _` | | |/ /  / _ \
                          \__ \ | | | | | (_| | |   <  |  __/
                          |___/ |_| |_|  \__,_| |_|\_\  \___|
-                                    ", ConsoleColor.Blue);
+                                    ", ConsoleColor.Green);
            
             Print(8,40,"Menu:", ConsoleColor.White);
             Print(10,30,"[1].Play game", ConsoleColor.White);

@@ -7,3 +7,4 @@ koko 20
 kireto 140
 kireto 160
 ddfs 0
+Soldier 240
