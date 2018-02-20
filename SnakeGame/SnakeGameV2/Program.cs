@@ -34,7 +34,7 @@ namespace JustSnake
             ReadHighScore();
             StartMenu();
             Console.Clear();
-
+//hey
             PrintBorder();
 
             byte right = 0;
